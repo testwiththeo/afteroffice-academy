@@ -1,0 +1,69 @@
+name: Task 02 - Restful Booker API Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths: [ 'task-02/**' ]
+  pull_request:
+    branches: [ main, master, develop ]
+    paths: [ 'task-02/**' ]
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'task-02/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./task-02
+        run: npm ci
+
+      - name: Verify Cypress installation
+        working-directory: ./task-02
+        run: npx cypress verify
+
+      - name: Run Cypress API tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./task-02
+          headed: false
+          spec: cypress/e2e/**/*.cy.js
+          config-file: cypress.config.js
+        env:
+          BOOKER_BASE_URL: ${{ secrets.BOOKER_BASE_URL || 'https://restful-booker.herokuapp.com' }}
+          BOOKER_USERNAME: ${{ secrets.BOOKER_USERNAME || 'admin' }}
+          BOOKER_PASSWORD: ${{ secrets.BOOKER_PASSWORD || 'password123' }}
+
+      - name: Generate HTML Report
+        if: always()
+        working-directory: ./task-02
+        run: |
+          npm run report:merge || true
+          npm run report:generate || true
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-02-api-results
+          path: |
+            task-02/cypress/reports/html
+            task-02/cypress/screenshots
+            task-02/cypress/videos
+          retention-days: 30
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Task 02 - Restful Booker API Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
