@@ -1,0 +1,13 @@
+{
+  "categories": [
+    "Gaming",
+    "Music",
+    "Sports",
+    "News"
+  ],
+  "testData": {
+    "defaultCategory": "Gaming",
+    "videoPosition": 3,
+    "section": "Trending"
+  }
+}

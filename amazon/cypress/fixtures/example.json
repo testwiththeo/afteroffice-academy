@@ -1,0 +1,12 @@
+{
+  "searchKeywords": [
+    "chair",
+    "laptop",
+    "headphones",
+    "desk"
+  ],
+  "testData": {
+    "defaultKeyword": "chair",
+    "sortOrder": "price-desc-rank"
+  }
+}

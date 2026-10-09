@@ -1,0 +1,39 @@
+{
+  "name": "agoda-flight-booking-e2e",
+  "version": "1.0.0",
+  "description": "E2E automated test for Agoda flight booking using Cypress with POM pattern",
+  "main": "index.js",
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:chrome": "cypress run --browser chrome",
+    "cy:run:headed": "cypress run --headed --browser chrome",
+    "test": "cypress run --spec 'cypress/e2e/agoda-flight-booking.cy.js'",
+    "test:chrome": "cypress run --browser chrome --spec 'cypress/e2e/agoda-flight-booking.cy.js'",
+    "test:headed": "cypress run --headed --browser chrome --spec 'cypress/e2e/agoda-flight-booking.cy.js'",
+    "test:report": "cypress run && npm run report:merge && npm run report:generate",
+    "report:merge": "mochawesome-merge cypress/reports/*.json > cypress/reports/mochawesome-bundle.json",
+    "report:generate": "marge cypress/reports/mochawesome-bundle.json --reportDir cypress/reports/html --inline",
+    "clean:reports": "rm -rf cypress/reports cypress/screenshots cypress/videos",
+    "ci:test": "cypress run --browser chrome --headless --spec 'cypress/e2e/**/*.cy.js'"
+  },
+  "keywords": [
+    "cypress",
+    "e2e",
+    "testing",
+    "automation",
+    "agoda",
+    "flight-booking",
+    "pom",
+    "page-object-model"
+  ],
+  "author": "QA Automation Engineer",
+  "license": "ISC",
+  "devDependencies": {
+    "cypress": "^13.6.0",
+    "cypress-mochawesome-reporter": "^3.8.0",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^4.3.0",
+    "mochawesome-report-generator": "^6.2.0"
+  }
+}

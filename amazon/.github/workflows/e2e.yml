@@ -1,0 +1,83 @@
+name: Amazon E2E Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+  schedule:
+    # Run tests every day at 3 AM UTC
+    - cron: '0 3 * * *'
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, firefox, edge]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: 'amazon/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: ./amazon
+        run: npm ci
+
+      - name: Verify Cypress installation
+        working-directory: ./amazon
+        run: npx cypress verify
+
+      - name: Run Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./amazon
+          browser: ${{ matrix.browser }}
+          headed: false
+          spec: cypress/e2e/**/*.cy.js
+          config-file: cypress.config.js
+        env:
+          CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL || 'https://www.amazon.com' }}
+
+      - name: Generate HTML Report
+        if: always()
+        working-directory: ./amazon
+        run: |
+          npm run report:merge || true
+          npm run report:generate || true
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: amazon-cypress-results-${{ matrix.browser }}
+          path: |
+            amazon/cypress/reports/html
+            amazon/cypress/screenshots
+            amazon/cypress/videos
+          retention-days: 30
+
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: amazon-html-report-${{ matrix.browser }}
+          path: amazon/cypress/reports/html
+          retention-days: 30
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Amazon Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Browser: ${{ matrix.browser }}" >> $GITHUB_STEP_SUMMARY
+          echo "Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
